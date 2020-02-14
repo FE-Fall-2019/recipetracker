@@ -6,88 +6,88 @@ import Create from './containers/create/create';
 import { Link } from 'react-router-dom';
 import { Alert } from 'react-bootstrap';
 import Recipe from './containers/recipe/recipe';
+import { appLoad } from './recipes/recipeActions';
+import { connect } from 'react-redux';
+import { withRouter } from 'react-router-dom';
 
-export default class App extends Component {
-  constructor() {
-    super();
+class App extends Component {
+  constructor(props) {
+    super(props);
     this.state = {
-      createSuccess: false,
-      recipes: [
-        {
-          id: 0,
-          name: "Cheesecake",
-          ingredients: [
-            {
-              ingredient: "Cream Cheese",
-              quantity: 8,
-              measurement: "ounces"
-            },
-            {
-              ingredient: "Eggs",
-              quantity: 2,
-              measurement: "each"
-            }
-          ]
-        },
-        {
-          id: 1,
-          name: "French Toast",
-          ingredients: [
-            {
-              ingredient: "Eggs",
-              quantity: 2,
-              measurement: "each"
-            },
-            {
-              ingredient: "Bread",
-              quantity: 1,
-              measurement: "each"
-            }
-          ]
-        }
-      ]
+      hasError: false,
+      createSuccess: false
     }
   }
 
-  createRecipe = (name) => {
-    let newRecipe = {
-      id: this.state.recipes.length,
-      name: name
-    }
-
+  createRecipe = (newRecipe) => {
     this.setState({ recipes: [...this.state.recipes, newRecipe], createSuccess: true })
   }
 
   addIngredient = (id, newIngredient) => {
     let recipe = this.state.recipes.find(r => r.id == id);
-    recipe.ingredients = [...recipe.ingredients, newIngredient];
+    if (!recipe.ingredients) {
+      recipe.ingredients = [newIngredient];
+    } else {
+      recipe.ingredients = [...recipe.ingredients, newIngredient];
+    }
 
     this.setState({ recipes: this.state.recipes });
   }
 
+  componentDidMount() {
+    fetch("https://recipetracker-test.new-labs.co/recipetracker/recipe/all")
+      .then(res => {
+        return res.json();
+      })
+      .then(response => {
+        // this.setState({ recipes: response, hasError: false })
+        this.props.appLoad(response);
+        this.setState({ hasError: false })
+      })
+      .catch(err => {
+        console.log(err);
+        this.setState({ hasError: true });
+      })
+  }
+
   render() {
     return (
-    <div className="App container">
-      <h2>Recipe Tracker</h2>
-      {this.state.createSuccess ?
-      <Alert onClick={() => this.setState({ createSuccess: false})} variant="success">New Recipe Added</Alert> : ""}
-      <Link to="/create">Create New Recipe</Link>
+      <div className="App container">
+        <h2>Recipe Tracker</h2>
+        {this.state.hasError ?
+          <Alert onClick={() => this.setState({ hasError: false })} variant="danger">Oops</Alert> : ""}
+        {this.state.createSuccess ?
+          <Alert onClick={() => this.setState({ createSuccess: false })} variant="success">New Recipe Added</Alert> : ""}
+        <Link to="/create">Create New Recipe</Link>
 
-      <Switch>
-        <Route
-        path="/" exact
-        render={(props) => <Main {...props} recipes={this.state.recipes} />}
-        />
-        <Route
-        path="/create"
-        render={(props) => <Create {...props} createRecipe={this.createRecipe} />}
-        />
-        <Route
-        path="/recipe/:id"
-        render={(props) => <Recipe {...props} recipes={this.state.recipes} addIngredient={this.addIngredient} />}
-        />
-      </Switch>
-    </div>
+        <Switch>
+          <Route
+            path="/" exact
+            render={(props) => <Main {...props} />}
+          />
+          <Route
+            path="/create"
+            render={(props) => <Create {...props} createRecipe={this.createRecipe} />}
+          />
+          <Route
+            path="/recipe/:id"
+            render={(props) => <Recipe {...props} recipes={this.props.recipes.recipes} addIngredient={this.addIngredient} />}
+          />
+        </Switch>
+      </div>
     );
   }
 }
+
+const mapDispatchToProps = {
+  appLoad
+};
+
+const mapStateToProps = (state) => ({
+  recipes: state.recipes
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(withRouter(App))

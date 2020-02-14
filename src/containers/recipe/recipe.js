@@ -6,6 +6,8 @@ export default class Recipe extends Component {
         super();
 
         this.state = {
+            loading: true,
+            ingredients: [],
             ingredient: "",
             quantity: 0,
             measurement: ""
@@ -33,15 +35,38 @@ export default class Recipe extends Component {
         let newIngredient = {
             ingredient: this.state.ingredient,
             quantity: this.state.quantity,
-            measurement: this.state.measurement
+            measurement: this.state.measurement,
+            recipeId: this.props.match.params.id
         }
 
-        let { id } = this.props.match.params;
-        this.props.addIngredient(id, newIngredient);
+        const requestOptions = {
+            method: "POST",
+            body: JSON.stringify(newIngredient),
+            headers: {"Content-Type": "application/json"}
+        }
+
+        fetch("https://recipetracker-test.new-labs.co/recipetracker/ingredient", requestOptions)
+            .then(res => {
+                return res.json()
+            })
+            .then(response => {
+                this.setState({ ingredients: [...this.state.ingredients, response ]})
+            })
     }
 
     goBack = () => {
         this.props.history.push("/");
+    }
+
+    componentDidMount() {
+        let { id } = this.props.match.params;
+        fetch("https://recipetracker-test.new-labs.co/recipetracker/ingredient/" + id)
+            .then(res => {
+                return res.json()
+            })
+            .then(response => {
+                this.setState({ ingredients: response, loading: false});
+            })
     }
 
    render() {
@@ -49,9 +74,9 @@ export default class Recipe extends Component {
        let recipe = this.props.recipes.find(r => r.id == id);
        return(
            <div>
-               {recipe.name}
+               {recipe && recipe.name}
                <br />
-               {recipe.ingredients.map(i => (
+               {this.state.ingredients.map(i => (
                    <div style={{fontSize: 14}}>
                        {i.ingredient}
                        <br />

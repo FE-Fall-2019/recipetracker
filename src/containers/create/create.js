@@ -13,7 +13,24 @@ export default class Create extends Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
-        this.props.createRecipe(this.state.name);
+        const httpRequest = {
+            method: "POST",
+            body: JSON.stringify(this.state),
+            headers: {"Content-Type": "application/json"}
+        };
+
+        fetch("https://recipetracker-test.new-labs.co/recipetracker/recipe", httpRequest)
+            .then(res => {
+                console.log(res);
+                return res.json();
+            })
+            .then(response => {
+                this.props.createRecipe(response);
+            })
+            .catch(err => {
+                console.log(err);
+            })
+
         this.props.history.push("/");
     }
 

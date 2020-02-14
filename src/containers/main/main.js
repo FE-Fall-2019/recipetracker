@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
+import { connect } from 'react-redux';
 
-export default class Main extends Component {
-    constructor() {
-        super();
+class Main extends Component {
+    constructor(props) {
+        super(props);
     }
 
     navigate = (id) => {
@@ -13,7 +14,7 @@ export default class Main extends Component {
     render() {
         return (
             <div>
-                {this.props.recipes.map(r => (
+                {this.props.recipes.recipes.map(r => (
                     <div key={r.id}>
                         <div onClick={() => this.navigate(r.id)}>
                             {r.name}
@@ -24,3 +25,16 @@ export default class Main extends Component {
         )
     }
 }
+
+const mapStateToProps = state => ({
+    recipes: state.recipes
+})
+
+const mapDispatchToProps = {
+
+}
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Main)
