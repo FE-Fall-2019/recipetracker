@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Button, Form } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
-export default class Recipe extends Component {
+class Recipe extends Component {
     constructor() {
         super();
 
@@ -65,16 +66,15 @@ export default class Recipe extends Component {
                 return res.json()
             })
             .then(response => {
-                this.setState({ ingredients: response, loading: false});
+                let recipe = this.props.recipes.recipes.find(r => r.id == id);
+                this.setState({ ingredients: response, loading: false, recipe: recipe});
             })
     }
 
    render() {
-       let { id } = this.props.match.params;
-       let recipe = this.props.recipes.find(r => r.id == id);
        return(
            <div>
-               {recipe && recipe.name}
+               {this.state.recipe && this.state.recipe.name}
                <br />
                {this.state.ingredients.map(i => (
                    <div style={{fontSize: 14}}>
@@ -119,3 +119,17 @@ export default class Recipe extends Component {
        )
    } 
 }
+
+const mapStateToProps = state => ({
+    recipes: state.recipes,
+    user: state.user
+})
+
+const mapDispatchToProps = {
+
+}
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Recipe)

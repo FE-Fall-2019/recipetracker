@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { Form, Button } from 'react-bootstrap';
+import { connect } from 'react-redux';
 
-export default class Create extends Component {
+class Create extends Component {
     constructor() {
         super();
 
@@ -13,9 +14,14 @@ export default class Create extends Component {
     handleSubmit = (event) => {
         event.preventDefault();
 
+        const newRecipe = {
+            name: this.state.name,
+            userId: this.props.user.id
+        }
+
         const httpRequest = {
             method: "POST",
-            body: JSON.stringify(this.state),
+            body: JSON.stringify(newRecipe),
             headers: {"Content-Type": "application/json"}
         };
 
@@ -25,13 +31,12 @@ export default class Create extends Component {
                 return res.json();
             })
             .then(response => {
-                this.props.createRecipe(response);
+                this.props.history.push("/");
             })
             .catch(err => {
                 console.log(err);
             })
 
-        this.props.history.push("/");
     }
 
     handleNameChange = (event) => {
@@ -61,3 +66,16 @@ export default class Create extends Component {
         )
     }
 }
+
+const mapStateToProps = state => ({
+    user: state.user
+})
+
+const mapDispatchToProps = {
+
+}
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Create)
